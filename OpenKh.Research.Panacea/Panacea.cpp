@@ -309,6 +309,8 @@ char* FetchPattern(const char* pattern, const char* patvalid)
         if (i == patlen)
             return addr;
     }
+
+    return nullptr;
 }
 
 void Panacea::Initialize()
@@ -1170,15 +1172,24 @@ void* __cdecl Panacea::LoadFileWithMalloc(Axa::CFileMan* _this, const char* file
         if (!_fetchFunc)
         {
             _fetchFunc = reinterpret_cast<bool(*)(const char*, char*, char*)>(FetchPattern("\x48\x89\x5C\x24\x20\x55\x56\x57\x48\x81\xEC\x40\x01\x00\x00", "xxxxxxxxxxxxxxx"));
+
+            if (!_fetchFunc)
+            { 
+                ENSURE_DIRECTORY = true;
+                goto CONTINUE_FUNC;
+            }
+
             _fetchFunc("KINGDOM HEARTS HD 1.5+2.5 ReMIX\\Epic Games Store", _stringBuffer, nullptr);
         }
         
         else
             _fetchFunc("KINGDOM HEARTS HD 1.5+2.5 ReMIX\\Steam", _stringBuffer, nullptr);
-        std::filesystem::create_directories(_stringBuffer);
 
+        std::filesystem::create_directories(_stringBuffer);
         ENSURE_DIRECTORY = true;
     }
+
+CONTINUE_FUNC:
 
     wchar_t path[MAX_PATH];
     if (GetRawFile(path, sizeof(path), filename))
