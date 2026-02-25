@@ -36,6 +36,17 @@ namespace OpenKh.Command.MapGen.Utils
 
             var singleFaces = ConvertModelIntoFaces(modelFile, config);
 
+            // Apply explicit material priority ordering from mapdef.yml.
+            // Faces whose material has a priority set come first (ascending),
+            // followed by unprioritized faces in their original order.
+            singleFaces = singleFaces
+                .Select((face, originalIndex) => (face, originalIndex))
+                .OrderBy(x => x.face.matDef.priority.HasValue ? 0 : 1)
+                .ThenBy(x => x.face.matDef.priority ?? 0)
+                .ThenBy(x => x.originalIndex)
+                .Select(x => x.face)
+                .ToList();
+
             logger.Debug($"Loading process has done.");
 
             logger.Debug($"Starting MapBuilding.");
